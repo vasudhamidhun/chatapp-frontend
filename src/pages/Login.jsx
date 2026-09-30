@@ -9,28 +9,44 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleGoogleLogin = async (credentialResponse) => {
-    try {
-      const response = await axios.post(
-         `${API_URL}/api/auth/google`,
-        {
-          credential: credentialResponse.credential,
-        }
-      );
+ const handleGoogleLogin = async (credentialResponse) => {
+  try {
+    console.log("1. Google credential received");
 
-      login(
-        response.data.user,
-        response.data.token
-      );
+    const response = await axios.post(
+      `${API_URL}/api/auth/google`,
+      {
+        credential: credentialResponse.credential,
+      }
+    );
 
-      navigate("/chat");
-    } catch (error) {
-      console.error(
-        "Login error:",
-        error.response?.data || error.message
-      );
-    }
-  };
+    console.log("2. Backend response:", response.data);
+
+    login(
+      response.data.user,
+      response.data.token
+    );
+
+    console.log(
+      "3. Token after login:",
+      localStorage.getItem("token")
+    );
+
+    console.log(
+      "4. User after login:",
+      localStorage.getItem("user")
+    );
+
+    navigate("/chat");
+
+    console.log("5. Navigation called");
+  } catch (error) {
+    console.error(
+      "Login error:",
+      error.response?.data || error.message
+    );
+  }
+};
 
   return (
     <div>
