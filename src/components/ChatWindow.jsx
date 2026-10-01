@@ -31,6 +31,7 @@ const ChatWindow = ({
         message={message}
         setMessage={setMessage}
         sendMessage={sendMessage}
+        selectedUser={selectedUser}
       />
 
     </main>

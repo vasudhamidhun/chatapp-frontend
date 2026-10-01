@@ -103,11 +103,13 @@
 
 import { useState } from "react";
 import EmojiPicker from "emoji-picker-react";
+import CallButton from "./CallButton";
 
 const MessageComposer = ({
   message,
   setMessage,
   sendMessage,
+  selectedUser,
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -169,7 +171,7 @@ const MessageComposer = ({
       </div>
 
       {/* Attachment / Call */}
-      <button
+      {/* <button
         className="
           flex h-10 w-10 shrink-0
           items-center justify-center
@@ -180,7 +182,9 @@ const MessageComposer = ({
         title="Attach"
       >
         📞
-      </button>
+      </button> */}
+
+      <CallButton selectedUser={selectedUser}/>
 
       {/* Input */}
       <div
