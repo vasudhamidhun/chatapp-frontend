@@ -9,7 +9,7 @@ const ChatWindow = ({
   messages,
   message,
   setMessage,
-  sendMessages,
+  sendMessage,
 }) => {
   if (!selectedUser) {
     return <EmptyChat />;
