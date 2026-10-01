@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import socket from "../socket";
@@ -15,6 +15,135 @@ function Chat() {
 
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
+
+  const peerConnectionRef = useRef(null);
+  const pendingIceCandidatesRef = useRef([]);
+
+  const remoteAudioRef = useRef(null);
+
+  // for ICE candidate handling
+
+// ICE candidate handling
+useEffect(() => {
+  const handleIceCandidate = async ({ candidate }) => {
+    try {
+      console.log("🧊 ICE candidate received:", candidate);
+
+      const peerConnection = peerConnectionRef.current;
+
+      if (!peerConnection) {
+        console.log(
+          "⏳ Peer connection not ready, storing ICE candidate"
+        );
+
+        pendingIceCandidatesRef.current.push(candidate);
+        return;
+      }
+
+      await peerConnection.addIceCandidate(
+        new RTCIceCandidate(candidate)
+      );
+
+      console.log("✅ ICE candidate added");
+    } catch (error) {
+      console.error("❌ Error adding ICE candidate:", error);
+    }
+  };
+
+  socket.on("ice-candidate", handleIceCandidate);
+
+  return () => {
+    socket.off("ice-candidate", handleIceCandidate);
+  };
+}, []);
+
+  //Listen For New real time incoing call
+  useEffect(() => {
+  const handleIncomingCall = async (data) => {
+    try {
+      console.log("📞 Incoming call received:", data);
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+
+      console.log("🎤 Receiver microphone access granted");
+
+      
+      const peerConnection = new RTCPeerConnection();
+
+peerConnectionRef.current = peerConnection;
+
+console.log("🔗 Receiver peer connection created");
+
+//for audio track
+peerConnection.ontrack = (event) => {
+  console.log("🎧 Remote audio track received");
+
+  const remoteStream = event.streams[0];
+
+  if (remoteAudioRef.current) {
+    remoteAudioRef.current.srcObject = remoteStream;
+  }
+};
+
+peerConnection.onconnectionstatechange = () => {
+  console.log(
+    "🔗 Receiver WebRTC connection state:",
+    peerConnection.connectionState
+  );
+};
+
+      stream.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, stream);
+      });
+
+      console.log("🎵 Receiver audio track added");
+
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.offer)
+      );
+
+      console.log("✅ Remote offer set");
+
+      for (const candidate of pendingIceCandidatesRef.current) {
+  await peerConnection.addIceCandidate(
+    new RTCIceCandidate(candidate)
+  );
+
+  console.log("✅ Pending ICE candidate added");
+}
+
+pendingIceCandidatesRef.current = [];
+
+      const answer = await peerConnection.createAnswer();
+
+      console.log("📄 Answer created:", answer);
+
+      await peerConnection.setLocalDescription(answer);
+
+      console.log("✅ Local answer set");
+
+      socket.emit("answer-call", {
+        to: data.from,
+        answer: answer,
+      });
+
+      console.log("📤 Answer sent to caller");
+    } catch (error) {
+      console.error("❌ Incoming call error:", error);
+    }
+  };
+
+  socket.on("incoming-call", handleIncomingCall);
+
+  console.log("🌐 Incoming-call listener registered");
+
+  return () => {
+    socket.off("incoming-call", handleIncomingCall);
+  };
+}, []);
 
   // Listen for new real-time messages
   useEffect(() => {
@@ -94,6 +223,14 @@ function Chat() {
   };
 
   return (
+
+    <div>
+
+<audio
+  ref={remoteAudioRef}
+  autoPlay
+/>
+
     <ChatPage
       user={user}
       users={users}
@@ -105,6 +242,8 @@ function Chat() {
       sendMessage={sendMessage}
       logout={logout}
     />
+
+    </div>
   );
 }
 
