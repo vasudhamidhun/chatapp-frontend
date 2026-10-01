@@ -1,5 +1,6 @@
-import ChatHeader from "./ChatHeader";
+
 import MessageList from "./MessageList";
+import ChatHeader from "./ChatHeader";
 import MessageComposer from "./MessageComposer";
 import EmptyChat from "./EmptyChat";
 
