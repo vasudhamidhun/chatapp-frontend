@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Chat from "./pages/Chat";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChatPage from "./pages/ChatPage";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Chat />
+              {/* <ChatPage/> */}
             </ProtectedRoute>
           }
         />
