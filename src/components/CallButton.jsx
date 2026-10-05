@@ -1,8 +1,3 @@
-
-
-
-
-
 import { useEffect, useRef, useState } from "react";
 import socket from "../socket";
 
@@ -23,7 +18,6 @@ export default function CallButton({ selectedUser }) {
   // =========================================================
 
   const [callStatus, setCallStatus] = useState("idle");
-
   /*
     idle
     calling
@@ -233,8 +227,17 @@ export default function CallButton({ selectedUser }) {
       // Create peer connection
       // =====================================================
 
-      const peerConnection =
-        new RTCPeerConnection();
+      // const peerConnection =
+      //   new RTCPeerConnection();
+
+      // for stun implementation
+      const peerConnection = new RTCPeerConnection({
+          iceServers: [
+            {
+              urls: "stun:stun.l.google.com:19302",
+            },
+          ],
+        });
 
       peerConnectionRef.current =
         peerConnection;
@@ -277,20 +280,44 @@ export default function CallButton({ selectedUser }) {
       // ICE candidate
       // =====================================================
 
-      peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-          console.log(
-            "🧊 ICE candidate generated:",
-            event.candidate
-          );
+      // peerConnection.onicecandidate = (event) => {
+      //   if (event.candidate) {
+      //     console.log(
+      //       "🧊 ICE candidate generated:",
+      //       event.candidate
+      //     );
 
-          socket.emit("ice-candidate", {
-            to: selectedUser._id,
-            candidate: event.candidate,
-          });
-        }
-      };
+      //     socket.emit("ice-candidate", {
+      //       to: selectedUser._id,
+      //       candidate: event.candidate,
+      //     });
+      //   }
+      // };
+       peerConnection.onicecandidate = (event) => {
+  if (event.candidate) {
+    console.log(
+      "🧊 ICE candidate:",
+      event.candidate.candidate
+    );
 
+    console.log(
+      "➡️ Type:",
+      event.candidate.type
+    );
+
+    console.log(
+      "➡️ Address:",
+      event.candidate.address
+    );
+
+    console.log(
+      "➡️ Protocol:",
+      event.candidate.protocol
+    );
+  } else {
+    console.log("✅ ICE candidate gathering completed");
+  }
+};
       // =====================================================
       // Add microphone track
       // =====================================================
